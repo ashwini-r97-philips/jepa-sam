@@ -83,7 +83,7 @@ def medsam_inference(
     box_1024: torch.Tensor,
     target_size: tuple[int, int] = (256, 256),
 ) -> torch.Tensor:
-    """Run MedSAM inference on a single image.
+    """Run MedSAM inference on a batch of images.
 
     Args:
         model: SAM model.
@@ -98,24 +98,27 @@ def medsam_inference(
     image = image.to(device)
     box_1024 = box_1024.to(device)
 
-    # Image embedding
+    # Image embedding (batched — standard ViT)
     image_embedding = model.image_encoder(image)
 
-    # Prompt encoding with box
-    sparse_embeddings, dense_embeddings = model.prompt_encoder(
-        points=None,
-        boxes=box_1024,
-        masks=None,
-    )
+    # SAM decoder expects single-image input; loop per sample
+    preds = []
+    for i in range(image.shape[0]):
+        sparse_emb, dense_emb = model.prompt_encoder(
+            points=None,
+            boxes=box_1024[i:i+1],
+            masks=None,
+        )
+        low_res_logits, _ = model.mask_decoder(
+            image_embeddings=image_embedding[i:i+1],
+            image_pe=model.prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_emb,
+            dense_prompt_embeddings=dense_emb,
+            multimask_output=False,
+        )
+        preds.append(low_res_logits)
 
-    # Mask decoding
-    low_res_logits, _ = model.mask_decoder(
-        image_embeddings=image_embedding,
-        image_pe=model.prompt_encoder.get_dense_pe(),
-        sparse_prompt_embeddings=sparse_embeddings,
-        dense_prompt_embeddings=dense_embeddings,
-        multimask_output=False,
-    )
+    low_res_logits = torch.cat(preds, dim=0)
 
     # Sigmoid and threshold
     low_res_pred = torch.sigmoid(low_res_logits)
