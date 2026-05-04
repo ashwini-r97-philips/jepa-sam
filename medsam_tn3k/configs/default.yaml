@@ -1,0 +1,28 @@
+# Default configuration for MedSAM + TN3K experiments
+# All paths are relative to the medsam_tn3k/ directory
+
+seed: 0
+image_size: 1024
+mask_size: 256
+
+# Dataset
+data_dir: data/raw/TN3K
+split_dir: data/splits/seed0
+boxes_file: data/splits/seed0/boxes.json
+
+# Model
+checkpoint_path: checkpoints/medsam_vit_b.pth
+freeze_image_encoder: true
+
+# Training
+batch_size: 4
+num_workers: 4
+epochs: 50
+lr: 0.0001
+weight_decay: 0.01
+
+# Evaluation
+include_hd95: false
+
+# Logging
+log_level: INFO

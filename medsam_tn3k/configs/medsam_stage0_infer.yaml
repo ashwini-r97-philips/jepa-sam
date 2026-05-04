@@ -1,0 +1,21 @@
+# Stage 0: Initial MedSAM inference (no training)
+# Run with: python scripts/run_inference.py --config configs/medsam_stage0_infer.yaml
+
+seed: 0
+image_size: 1024
+mask_size: 256
+
+# Dataset
+split_dir: data/splits/seed0
+boxes_file: data/splits/seed0/boxes.json
+
+# Model - initial MedSAM weights (no fine-tuning)
+checkpoint_path: checkpoints/medsam_vit_b.pth
+
+# Inference
+batch_size: 1
+output_dir: outputs/stage0_initial_infer
+
+# Evaluation
+include_hd95: false
+log_level: INFO

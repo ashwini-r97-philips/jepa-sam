@@ -1,0 +1,30 @@
+# Stage 2: Fine-tune MedSAM with 10% labeled training masks
+# Run with: python scripts/train_medsam.py --config configs/medsam_stage2_10pct_train.yaml
+
+seed: 0
+image_size: 1024
+mask_size: 256
+
+# Dataset
+split_dir: data/splits/seed0
+boxes_file: data/splits/seed0/boxes.json
+train_split: data/splits/seed0/train_labeled_10pct.json
+val_split: data/splits/seed0/val.json
+
+# Model
+checkpoint_path: checkpoints/medsam_vit_b.pth
+freeze_image_encoder: true
+
+# Training
+batch_size: 4
+num_workers: 4
+epochs: 50
+lr: 0.0001
+weight_decay: 0.01
+
+# Output
+output_dir: outputs/stage2_10pct
+
+# Evaluation
+include_hd95: false
+log_level: INFO

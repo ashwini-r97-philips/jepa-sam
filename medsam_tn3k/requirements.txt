@@ -1,0 +1,16 @@
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+Pillow>=9.4.0
+opencv-python>=4.7.0
+PyYAML>=6.0
+tqdm>=4.65.0
+huggingface_hub>=0.16.0
+datasets>=2.14.0
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git
+scikit-image>=0.20.0
+pandas>=2.0.0
+jsonlines>=3.1.0
+# Optional: for HD95 metric
+# scipy>=1.10.0
+# medpy>=0.4.0
