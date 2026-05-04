@@ -94,20 +94,25 @@ class MedSAMTrainer:
             mask = batch["mask"].to(self.device)
             box = batch["box"].to(self.device)
 
-            # Forward
+            # Batch through the image encoder (frozen)
             with torch.no_grad():
                 image_embedding = self.model.image_encoder(image)
 
-            sparse_embeddings, dense_embeddings = self.model.prompt_encoder(
-                points=None, boxes=box, masks=None,
-            )
-            low_res_logits, _ = self.model.mask_decoder(
-                image_embeddings=image_embedding,
-                image_pe=self.model.prompt_encoder.get_dense_pe(),
-                sparse_prompt_embeddings=sparse_embeddings,
-                dense_prompt_embeddings=dense_embeddings,
-                multimask_output=False,
-            )
+            # SAM decoder expects single-image input; loop per sample
+            logits_list = []
+            for i in range(image.shape[0]):
+                sparse_emb, dense_emb = self.model.prompt_encoder(
+                    points=None, boxes=box[i:i+1], masks=None,
+                )
+                low_res_logits_i, _ = self.model.mask_decoder(
+                    image_embeddings=image_embedding[i:i+1],
+                    image_pe=self.model.prompt_encoder.get_dense_pe(),
+                    sparse_prompt_embeddings=sparse_emb,
+                    dense_prompt_embeddings=dense_emb,
+                    multimask_output=False,
+                )
+                logits_list.append(low_res_logits_i)
+            low_res_logits = torch.cat(logits_list, dim=0)
 
             loss = self.criterion(low_res_logits, mask)
 
@@ -132,16 +137,22 @@ class MedSAMTrainer:
             box = batch["box"].to(self.device)
 
             image_embedding = self.model.image_encoder(image)
-            sparse_embeddings, dense_embeddings = self.model.prompt_encoder(
-                points=None, boxes=box, masks=None,
-            )
-            low_res_logits, _ = self.model.mask_decoder(
-                image_embeddings=image_embedding,
-                image_pe=self.model.prompt_encoder.get_dense_pe(),
-                sparse_prompt_embeddings=sparse_embeddings,
-                dense_prompt_embeddings=dense_embeddings,
-                multimask_output=False,
-            )
+
+            # SAM decoder expects single-image input; loop per sample
+            logits_list = []
+            for i in range(image.shape[0]):
+                sparse_emb, dense_emb = self.model.prompt_encoder(
+                    points=None, boxes=box[i:i+1], masks=None,
+                )
+                low_res_logits_i, _ = self.model.mask_decoder(
+                    image_embeddings=image_embedding[i:i+1],
+                    image_pe=self.model.prompt_encoder.get_dense_pe(),
+                    sparse_prompt_embeddings=sparse_emb,
+                    dense_prompt_embeddings=dense_emb,
+                    multimask_output=False,
+                )
+                logits_list.append(low_res_logits_i)
+            low_res_logits = torch.cat(logits_list, dim=0)
 
             loss = self.criterion(low_res_logits, mask)
             total_loss += loss.item()
