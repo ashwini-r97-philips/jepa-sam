@@ -90,7 +90,8 @@ class TN3KDataset(Dataset):
             mask = load_mask_binary(mask_path)
             mask_256 = resize_mask_256(mask)
             result["mask"] = mask_to_tensor(mask_256)
-            # Also keep original-resolution mask for evaluation
-            result["mask_original"] = torch.from_numpy(mask).unsqueeze(0).float()
+            # Original-resolution mask only for inference (varies in size, can't batch)
+            if self.mode == "inference":
+                result["mask_original"] = torch.from_numpy(mask).unsqueeze(0).float()
 
         return result
