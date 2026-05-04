@@ -47,7 +47,25 @@ def load_medsam_model(
         )
 
     logger.info("Loading MedSAM model from %s", checkpoint_path)
-    model = sam_model_registry["vit_b"](checkpoint=str(checkpoint_path))
+
+    # Detect checkpoint format: training checkpoint vs raw state_dict
+    ckpt = torch.load(str(checkpoint_path), map_location=device, weights_only=False)
+    is_training_ckpt = isinstance(ckpt, dict) and "model_state_dict" in ckpt
+
+    if is_training_ckpt:
+        # Training checkpoint (best.pt / last.pt) — build model first, then load weights
+        logger.info("Detected training checkpoint (epoch=%s)", ckpt.get("epoch", "?"))
+        model = sam_model_registry["vit_b"]()
+        model.load_state_dict(ckpt["model_state_dict"])
+    else:
+        # Raw MedSAM checkpoint (medsam_vit_b.pth)
+        model = sam_model_registry["vit_b"]()
+        if isinstance(ckpt, dict) and all(k.startswith(("image_encoder", "prompt_encoder", "mask_decoder")) for k in list(ckpt.keys())[:3]):
+            model.load_state_dict(ckpt)
+        else:
+            # Let SAM handle it via its built-in loader
+            model = sam_model_registry["vit_b"](checkpoint=str(checkpoint_path))
+
     model = model.to(device)
 
     if freeze_image_encoder:
