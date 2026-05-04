@@ -85,13 +85,10 @@ class TN3KDataset(Dataset):
             "original_size": (original_h, original_w),
         }
 
-        # Mask
+        # Mask (resized to 256x256 for uniform tensor size)
         if self.mode in ("train_supervised", "inference"):
             mask = load_mask_binary(mask_path)
             mask_256 = resize_mask_256(mask)
             result["mask"] = mask_to_tensor(mask_256)
-            # Original-resolution mask only for inference (varies in size, can't batch)
-            if self.mode == "inference":
-                result["mask_original"] = torch.from_numpy(mask).unsqueeze(0).float()
 
         return result
