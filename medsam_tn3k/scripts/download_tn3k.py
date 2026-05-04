@@ -8,8 +8,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
+
+# Force unbuffered output for SLURM visibility
+os.environ["PYTHONUNBUFFERED"] = "1"
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +30,15 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s | %(levelname)s | %(message)s")
+                        format="%(asctime)s | %(levelname)s | %(message)s",
+                        stream=sys.stdout, force=True)
 
     out_dir = Path(args.out_dir)
+    logger.info("out_dir=%s  repo_id=%s", out_dir, args.repo_id)
+    logger.info("out_dir exists=%s", out_dir.exists())
 
     # Idempotent: skip if already downloaded
-    if out_dir.exists() and any(out_dir.rglob("*.png")) or any(out_dir.rglob("*.jpg")):
+    if out_dir.exists() and (any(out_dir.rglob("*.png")) or any(out_dir.rglob("*.jpg"))):
         image_count = len(list(out_dir.rglob("*.png"))) + len(list(out_dir.rglob("*.jpg")))
         if image_count > 0:
             logger.info("Dataset already exists at %s (%d images). Skipping download.",
@@ -39,11 +46,19 @@ def main() -> None:
             return
 
     out_dir.mkdir(parents=True, exist_ok=True)
-
     logger.info("Downloading TN3K from Hugging Face repo: %s", args.repo_id)
+
+    # Verify huggingface_hub is importable
+    try:
+        import huggingface_hub
+        logger.info("huggingface_hub version: %s", huggingface_hub.__version__)
+    except ImportError:
+        logger.error("huggingface_hub is not installed. Run: pip install huggingface_hub")
+        sys.exit(1)
 
     try:
         from huggingface_hub import snapshot_download
+        logger.info("Starting snapshot_download (this may take a while)...")
         snapshot_download(
             repo_id=args.repo_id,
             repo_type="dataset",
@@ -52,7 +67,7 @@ def main() -> None:
         )
         logger.info("Download complete: %s", out_dir)
     except Exception as e:
-        logger.error("Failed to download dataset: %s", e)
+        logger.error("Failed to download dataset: %s", e, exc_info=True)
         logger.info(
             "Alternative: manually download from https://huggingface.co/datasets/%s "
             "and extract into %s", args.repo_id, out_dir
