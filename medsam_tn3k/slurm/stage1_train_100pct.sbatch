@@ -30,14 +30,6 @@ python scripts/train_medsam.py --config configs/medsam_stage1_100pct_train.yaml
 
 echo "=== Stage 1: Inference with best checkpoint ==="
 python scripts/run_inference.py \
-    --config configs/medsam_stage0_infer.yaml \
-    --checkpoint outputs/stage1_100pct/checkpoints/best.pt \
-    --splits val test
-
-# Move inference outputs to stage1 directory
-mkdir -p outputs/stage1_100pct/val outputs/stage1_100pct/test
-# Re-run inference pointing output to stage1 dir
-python scripts/run_inference.py \
     --config configs/medsam_stage1_100pct_train.yaml \
     --checkpoint outputs/stage1_100pct/checkpoints/best.pt \
     --splits val test
