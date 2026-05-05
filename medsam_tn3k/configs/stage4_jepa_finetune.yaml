@@ -1,0 +1,25 @@
+# Stage 4 JEPA Fine-tuning Configuration
+# Differential LR fine-tuning after JEPA pretraining
+
+medsam_checkpoint: "checkpoints/medsam_vit_b.pth"
+pretrained_encoder_checkpoint: "outputs/stage4_jepa_pretrain/checkpoints/best_encoder.pt"
+train_split: "data/splits/train_labeled_10pct.json"
+val_split: "data/splits/val.json"
+output_dir: "outputs/stage4_jepa_finetune"
+
+# Differential LR
+encoder_lr: 1.0e-5
+decoder_lr: 1.0e-4
+weight_decay: 1.0e-4
+
+# Training
+epochs: 50
+batch_size: 4
+num_workers: 4
+patience: 10
+image_size: 1024
+mask_size: 256
+
+# Misc
+seed: 0
+log_level: "INFO"

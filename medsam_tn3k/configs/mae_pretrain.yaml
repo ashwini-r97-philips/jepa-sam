@@ -1,0 +1,25 @@
+# MAE Pretraining Configuration
+# Stage 3, Part 1: Self-supervised pretraining with Masked Autoencoder
+
+medsam_checkpoint: "checkpoints/medsam_vit_b.pth"
+unlabeled_split: "data/splits/train_unlabeled_90pct.json"
+output_dir: "outputs/stage3_mae_pretrain"
+
+# MAE architecture
+decoder_embed_dim: 512
+decoder_depth: 4
+decoder_num_heads: 8
+mask_ratio: 0.75
+norm_pix_loss: true
+
+# Training
+epochs: 300
+batch_size: 8
+lr: 1.5e-4
+weight_decay: 0.05
+num_workers: 4
+image_size: 1024
+
+# Misc
+seed: 0
+log_level: "INFO"
