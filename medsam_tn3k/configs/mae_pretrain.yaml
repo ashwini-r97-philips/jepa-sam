@@ -14,7 +14,7 @@ norm_pix_loss: true
 
 # Training
 epochs: 300
-batch_size: 8
+batch_size: 4
 lr: 1.5e-4
 weight_decay: 0.05
 num_workers: 4
