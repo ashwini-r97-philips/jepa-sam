@@ -58,6 +58,7 @@ class DiffLRFineTuner:
         self.epochs = config.get("epochs", 30)
         self.encoder_lr = config.get("encoder_lr", 1e-5)
         self.decoder_lr = config.get("decoder_lr", 1e-4)
+        self.grad_accum_steps = config.get("grad_accum_steps", 1)
         self.weight_decay = config.get("weight_decay", 0.01)
         self.patience = config.get("patience", 10)
 
@@ -137,7 +138,8 @@ class DiffLRFineTuner:
         total_loss = 0.0
         n_batches = 0
 
-        for batch in self.train_loader:
+        self.optimizer.zero_grad()
+        for batch_idx, batch in enumerate(self.train_loader):
             image = batch["image"].to(self.device)
             mask = batch["mask"].to(self.device)
             box = batch["box"].to(self.device)
@@ -161,12 +163,14 @@ class DiffLRFineTuner:
                 logits_list.append(logits_i)
             low_res_logits = torch.cat(logits_list, dim=0)
 
-            loss = self.criterion(low_res_logits, mask)
-            self.optimizer.zero_grad()
+            loss = self.criterion(low_res_logits, mask) / self.grad_accum_steps
             loss.backward()
-            self.optimizer.step()
 
-            total_loss += loss.item()
+            if (batch_idx + 1) % self.grad_accum_steps == 0 or (batch_idx + 1) == len(self.train_loader):
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+
+            total_loss += loss.item() * self.grad_accum_steps
             n_batches += 1
 
         return total_loss / max(n_batches, 1)

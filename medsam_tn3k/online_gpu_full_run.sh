@@ -13,6 +13,9 @@
 
 set -euo pipefail
 
+# Reduce CUDA memory fragmentation (important for large encoders on 40GB)
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 

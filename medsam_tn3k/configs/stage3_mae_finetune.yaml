@@ -15,7 +15,8 @@ weight_decay: 1.0e-4
 
 # Training
 epochs: 50
-batch_size: 4
+batch_size: 2
+grad_accum_steps: 2
 num_workers: 4
 patience: 10
 image_size: 1024
