@@ -6,6 +6,8 @@ pretrained_encoder_checkpoint: "outputs/stage3_mae_pretrain/checkpoints/best_enc
 train_split: "data/splits/seed0/train_labeled_10pct.json"
 val_split: "data/splits/seed0/val.json"
 boxes_file: "data/splits/seed0/boxes.json"
+split_dir: "data/splits/seed0"
+checkpoint_path: "outputs/stage3_mae_finetune/checkpoints/best.pt"
 output_dir: "outputs/stage3_mae_finetune"
 
 # Differential LR
