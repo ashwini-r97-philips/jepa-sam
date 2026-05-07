@@ -3,8 +3,9 @@
 
 medsam_checkpoint: "checkpoints/medsam_vit_b.pth"
 pretrained_encoder_checkpoint: "outputs/stage4_jepa_pretrain/checkpoints/best_encoder.pt"
-train_split: "data/splits/train_labeled_10pct.json"
-val_split: "data/splits/val.json"
+train_split: "data/splits/seed0/train_labeled_10pct.json"
+val_split: "data/splits/seed0/val.json"
+boxes_file: "data/splits/seed0/boxes.json"
 output_dir: "outputs/stage4_jepa_finetune"
 
 # Differential LR

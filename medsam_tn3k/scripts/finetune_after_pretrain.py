@@ -70,17 +70,14 @@ def main() -> None:
     # Datasets
     train_dataset = TN3KDataset(
         split_file=config["train_split"],
+        boxes_file=config["boxes_file"],
         mode="train_supervised",
-        image_size=config.get("image_size", 1024),
-        mask_size=config.get("mask_size", 256),
-        augment=True,
         limit=args.limit,
     )
     val_dataset = TN3KDataset(
         split_file=config["val_split"],
+        boxes_file=config["boxes_file"],
         mode="inference",
-        image_size=config.get("image_size", 1024),
-        mask_size=config.get("mask_size", 256),
     )
     train_loader = DataLoader(
         train_dataset,
