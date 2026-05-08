@@ -2,7 +2,7 @@
 # Stage 3, Part 1: Self-supervised pretraining with Masked Autoencoder
 
 medsam_checkpoint: "checkpoints/medsam_vit_b.pth"
-unlabeled_split: "data/splits/train_unlabeled_90pct.json"
+unlabeled_split: "data/splits/seed0/train_unlabeled_90pct.json"
 output_dir: "outputs/stage3_mae_pretrain"
 
 # MAE architecture
