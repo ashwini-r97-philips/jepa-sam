@@ -1,3 +1,16 @@
+# Project-specific
+data/raw/
+data/processed/
+checkpoints/
+outputs/
+wandb/
+*.pt
+*.pth
+
+# Keep split definitions and .gitkeep files
+!data/splits/
+!outputs/.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

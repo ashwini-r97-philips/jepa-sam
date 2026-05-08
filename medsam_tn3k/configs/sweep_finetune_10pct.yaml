@@ -1,0 +1,31 @@
+# Sweep Finetune Configuration (10% labels)
+# Used by run_ssl_checkpoint_sweep.py for consistent downstream evaluation.
+# DO NOT modify between checkpoints — all sweep runs share these exact hyperparameters.
+
+medsam_checkpoint: "checkpoints/medsam_vit_b.pth"
+train_split: "data/splits/seed0/train_labeled_10pct.json"
+val_split: "data/splits/seed0/val.json"
+boxes_file: "data/splits/seed0/boxes.json"
+split_dir: "data/splits/seed0"
+
+# Differential LR (3-group: encoder, prompt_encoder, mask_decoder)
+encoder_lr: 1.0e-5
+prompt_encoder_lr: 2.0e-4
+mask_decoder_lr: 2.0e-4
+weight_decay: 1.0e-4
+
+# Training
+epochs: 50
+batch_size: 2
+grad_accum_steps: 2
+num_workers: 4
+patience: 10
+image_size: 1024
+mask_size: 256
+
+# Evaluation
+include_hd95: false
+
+# Misc
+seed: 0
+log_level: "INFO"

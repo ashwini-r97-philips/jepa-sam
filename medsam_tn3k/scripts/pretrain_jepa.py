@@ -202,8 +202,9 @@ def main() -> None:
                 "loss": best_loss,
             }, str(output_dir / "checkpoints" / "best_encoder.pt"))
 
-        # Periodic checkpoint
-        if epoch % 50 == 0:
+        # Save at configurable checkpoint epochs (for sweep experiments)
+        checkpoint_epochs = config.get("checkpoint_epochs", [])
+        if epoch in checkpoint_epochs or epoch % 50 == 0:
             torch.save({
                 "epoch": epoch,
                 "encoder_state_dict": {
@@ -216,7 +217,7 @@ def main() -> None:
                     k: v.cpu() for k, v in jepa_model.predictor.state_dict().items()
                 },
                 "loss": avg_loss,
-            }, str(output_dir / "checkpoints" / f"checkpoint_epoch{epoch}.pt"))
+            }, str(output_dir / "checkpoints" / f"encoder_epoch{epoch}.pt"))
 
     # Final save
     torch.save({

@@ -93,6 +93,7 @@ class DiffLRFineTuner:
 
         self.log_file = self.output_dir / "logs" / "train_log.jsonl"
         self.best_val_loss = float("inf")
+        self.best_epoch = 0
 
     def train(self) -> None:
         epochs_no_improve = 0
@@ -127,6 +128,7 @@ class DiffLRFineTuner:
             # Save best
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
+                self.best_epoch = epoch
                 epochs_no_improve = 0
                 self._save_checkpoint(self.output_dir / "checkpoints" / "best.pt", epoch)
                 logger.info("New best at epoch %d (val_loss=%.5f)", epoch, val_loss)

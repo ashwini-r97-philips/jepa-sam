@@ -154,8 +154,9 @@ def main() -> None:
                 "loss": best_loss,
             }, str(output_dir / "checkpoints" / "best_encoder.pt"))
 
-        # Save last encoder every 50 epochs
-        if epoch % 50 == 0:
+        # Save at configurable checkpoint epochs (for sweep experiments)
+        checkpoint_epochs = config.get("checkpoint_epochs", [])
+        if epoch in checkpoint_epochs or epoch % 50 == 0:
             torch.save({
                 "epoch": epoch,
                 "encoder_state_dict": {
