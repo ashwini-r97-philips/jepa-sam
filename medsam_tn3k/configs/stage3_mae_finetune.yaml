@@ -10,9 +10,10 @@ split_dir: "data/splits/seed0"
 checkpoint_path: "outputs/stage3_mae_finetune/checkpoints/best.pt"
 output_dir: "outputs/stage3_mae_finetune"
 
-# Differential LR
+# Differential LR (3-group: encoder, prompt_encoder, mask_decoder)
 encoder_lr: 1.0e-5
-decoder_lr: 1.0e-4
+prompt_encoder_lr: 2.0e-4
+mask_decoder_lr: 2.0e-4
 weight_decay: 1.0e-4
 
 # Training

@@ -57,30 +57,33 @@ class DiffLRFineTuner:
         self.device = next(model.parameters()).device
         self.epochs = config.get("epochs", 30)
         self.encoder_lr = config.get("encoder_lr", 1e-5)
-        self.decoder_lr = config.get("decoder_lr", 1e-4)
+        # Support separate prompt_encoder / mask_decoder LRs; fall back to decoder_lr
+        default_decoder_lr = config.get("decoder_lr", 1e-4)
+        self.prompt_encoder_lr = config.get("prompt_encoder_lr", default_decoder_lr)
+        self.mask_decoder_lr = config.get("mask_decoder_lr", default_decoder_lr)
         self.grad_accum_steps = config.get("grad_accum_steps", 1)
         self.weight_decay = config.get("weight_decay", 0.01)
         self.patience = config.get("patience", 10)
 
         # Build parameter groups with differential LR
         encoder_params = list(model.image_encoder.parameters())
-        decoder_params = (
-            list(model.prompt_encoder.parameters()) +
-            list(model.mask_decoder.parameters())
-        )
+        prompt_encoder_params = list(model.prompt_encoder.parameters())
+        mask_decoder_params = list(model.mask_decoder.parameters())
 
         # Unfreeze encoder for fine-tuning
         for p in encoder_params:
             p.requires_grad = True
 
         n_encoder = sum(p.numel() for p in encoder_params if p.requires_grad)
-        n_decoder = sum(p.numel() for p in decoder_params if p.requires_grad)
-        logger.info("Fine-tune params: encoder=%d (lr=%.1e), decoder=%d (lr=%.1e)",
-                    n_encoder, self.encoder_lr, n_decoder, self.decoder_lr)
+        n_prompt = sum(p.numel() for p in prompt_encoder_params if p.requires_grad)
+        n_mask_dec = sum(p.numel() for p in mask_decoder_params if p.requires_grad)
+        logger.info("Fine-tune params: encoder=%d (lr=%.1e), prompt_encoder=%d (lr=%.1e), mask_decoder=%d (lr=%.1e)",
+                    n_encoder, self.encoder_lr, n_prompt, self.prompt_encoder_lr, n_mask_dec, self.mask_decoder_lr)
 
         self.optimizer = AdamW([
             {"params": encoder_params, "lr": self.encoder_lr},
-            {"params": decoder_params, "lr": self.decoder_lr},
+            {"params": prompt_encoder_params, "lr": self.prompt_encoder_lr},
+            {"params": mask_decoder_params, "lr": self.mask_decoder_lr},
         ], weight_decay=self.weight_decay)
 
         self.scheduler = CosineAnnealingLR(
@@ -100,17 +103,19 @@ class DiffLRFineTuner:
             elapsed = time.time() - t0
 
             enc_lr = self.optimizer.param_groups[0]["lr"]
-            dec_lr = self.optimizer.param_groups[1]["lr"]
+            prompt_lr = self.optimizer.param_groups[1]["lr"]
+            mask_dec_lr = self.optimizer.param_groups[2]["lr"]
             record = {
                 "epoch": epoch,
                 "train_loss": round(train_loss, 6),
                 "val_loss": round(val_loss, 6),
                 "encoder_lr": enc_lr,
-                "decoder_lr": dec_lr,
+                "prompt_encoder_lr": prompt_lr,
+                "mask_decoder_lr": mask_dec_lr,
                 "elapsed_s": round(elapsed, 1),
             }
-            logger.info("Epoch %d/%d  train=%.5f  val=%.5f  enc_lr=%.2e  dec_lr=%.2e  (%.1fs)",
-                        epoch, self.epochs, train_loss, val_loss, enc_lr, dec_lr, elapsed)
+            logger.info("Epoch %d/%d  train=%.5f  val=%.5f  enc_lr=%.2e  prompt_lr=%.2e  dec_lr=%.2e  (%.1fs)",
+                        epoch, self.epochs, train_loss, val_loss, enc_lr, prompt_lr, mask_dec_lr, elapsed)
             with open(self.log_file, "a") as f:
                 f.write(json.dumps(record) + "\n")
 
